@@ -74,6 +74,27 @@ export async function registerAccount(formData: FormData) {
   };
 }
 
+export async function updateUserInfos(formData: FormData) {
+  // #1 Récupérer les champs
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+  const first_name = formData.get("first_name")?.toString();
+  const last_name = formData.get("last_name")?.toString();
+  const sexe = formData.get("sexe")?.toString();
+  const address = formData.get("address")?.toString();
+  const additional_address = formData.get("additional_address")?.toString();
+  const common = formData.get("common")?.toString();
+  const city = formData.get("city")?.toString();
+  const postal_code = formData.get("postal_code")?.toString();
+  const phone_number = formData.get("phone_number")?.toString();
+  // #2 Vérifier que toutes les infos sont présentes
+  // #3 Vérifier que toutes les infos ont le format correct
+  // #4 Vérifier si l'email n'est pas déjà utilisé par un autre utilisateur
+  // #5 Mettre à jour les informations
+
+  return { success: true, message: "Informations mises à jour" };
+}
+
 async function checkExistingEmail(email: string) {
   const response = await fetch("http://localhost:8000/email_check", {
     headers: { "Content-Type": "application/json" },

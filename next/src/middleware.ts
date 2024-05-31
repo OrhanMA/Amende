@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { isTokenExpired } from "./auth";
+import { isTokenExpired } from "./app/lib/auth";
 
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl;

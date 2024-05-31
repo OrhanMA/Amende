@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { signIn, registerAccount } from "../../auth";
+import { signIn, registerAccount, updateUserInfos } from "./auth";
 
 export async function authenticate(_currentState: unknown, formData: FormData) {
   try {
@@ -27,6 +27,16 @@ export async function authenticate(_currentState: unknown, formData: FormData) {
 export async function register(_currentState: unknown, formData: FormData) {
   try {
     const result = await registerAccount(formData);
+    return result.message;
+  } catch (error: any) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function update(_currentState: unknown, formData: FormData) {
+  try {
+    const result = await updateUserInfos(formData);
     return result.message;
   } catch (error: any) {
     console.log(error);
