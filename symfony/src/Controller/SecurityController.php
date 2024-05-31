@@ -12,6 +12,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use App\Entity\User;
 use App\Form\RegistrationFormType;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 
@@ -73,5 +74,35 @@ class SecurityController extends AbstractController
         return $this->render('registration/register.html.twig', [
             'registrationForm' => $form,
         ]);
+    }
+
+    #[Route('/email_check', name: 'app_email_check')]
+    public function emailCheck(Request $request, UserRepository $userRepository): Response
+    {
+
+        $requestBody = json_decode($request->getContent(), true);
+
+        if (empty($requestBody['email']) || !isset($requestBody['email'])) {
+            return new JsonResponse([
+                "success" => false,
+                "message" => "Veuillez envoyer l'email concerné pour procéder à la vérification"
+            ], 400);
+        }
+
+        $email = $requestBody['email'];
+
+        $userExists = $userRepository->findOneBy(["email" => $email]) !== null;
+
+        if ($userExists) {
+            return new JsonResponse([
+                "success" => false,
+                "message" => "Un utilisateur existe déjà avec cette adresse email"
+            ], 200);
+        }
+
+        return new JsonResponse([
+            "success" => true,
+            "message" => "Aucun utilisateur ne correspond à cette adresse email. L'enregistrement peut continuer"
+        ], 200);
     }
 }

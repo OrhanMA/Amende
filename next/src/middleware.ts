@@ -14,7 +14,7 @@ export async function middleware(request: NextRequest) {
   }
 
   const token = request.cookies.get("token")?.value;
-  const refresh_token = request.cookies.get("refresh_token")?.value;
+  // const refresh_token = request.cookies.get("refresh_token")?.value;
 
   // console.log("MIDDLEWARE JWT token is: ", token);
 
@@ -29,7 +29,10 @@ export async function middleware(request: NextRequest) {
   if (tokenExpired) {
     const urlClone = url.clone();
     urlClone.pathname = "/login";
-    return NextResponse.redirect(urlClone);
+    const response = NextResponse.redirect(urlClone);
+    response.cookies.delete("token");
+    response.cookies.delete("refresh_token");
+    return response;
   }
 
   return NextResponse.next();

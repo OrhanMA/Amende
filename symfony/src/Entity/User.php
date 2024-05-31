@@ -4,30 +4,38 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Put;
-use Doctrine\DBAL\Types\Types;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UserRepository;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Patch;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Attribute\SerializedName;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 
-#[ApiResource]
-#[ORM\Entity(repositoryClass: UserRepository::class)]
-#[GetCollection(security: "is_granted('ROLE_ADMIN')", securityMessage: "Vous devez être administrateur pour obtenir les données des comptes utilisateurs")]
-#[Get(security: "is_granted('ROLE_ADMIN') or object.id == user.id", securityMessage: "Vous devez être administrateur ou détenteur du compte en obtenir les détails")]
-#[Delete(security: "is_granted('ROLE_ADMIN') or object.id == user.id", securityMessage: "Vous devez être administrateur ou détenteur du compte le supprimer")]
-#[Put(security: "is_granted('ROLE_ADMIN') or object.id == user.id", securityMessage: "Vous devez être administrateur ou détenteur du compte pour remplacer ses données")]
-#[Patch(security: "is_granted('ROLE_ADMIN') or object.id == user.id", securityMessage: "Vous devez être administrateur ou détenteur du compte le modifier")]
+#[ApiResource(
+    operations: [
+        new GetCollection(security: "is_granted('ROLE_ADMIN')", securityMessage: "You must be an admin to view all users"),
+        new Get(security: "is_granted('ROLE_ADMIN') or object == user", securityMessage: "You must be an admin or the owner to view this user"),
+        new Delete(security: "is_granted('ROLE_ADMIN')", securityMessage: "Vous devez être adminstrateur pour pouvoir supprimer un compte"),
+        new Post(
+            security: 'is_granted("PUBLIC_ACCESS")',
+        ),
+        new Put(security: "is_granted('ROLE_ADMIN') or object == user", securityMessage: "You must be an admin or the owner to update this user"),
+        new Patch(security: "is_granted('ROLE_ADMIN') or object == user", securityMessage: "You must be an admin or the owner to modify this user"),
+    ],
+    security: 'is_granted("ROLE_USER")',
+)]
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
+#[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -49,6 +57,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\Column]
     private ?string $password = null;
+
+    #[SerializedName('password')]
+    private ?string $plainPassword = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $first_name = null;
@@ -160,13 +171,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword(?string $plainPassword): static
+    {
+        $this->plainPassword = $plainPassword;
+
+        return $this;
+    }
+
     /**
      * @see UserInterface
      */
     public function eraseCredentials(): void
     {
         // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
+        $this->plainPassword = null;
     }
 
     public function getFirstName(): ?string

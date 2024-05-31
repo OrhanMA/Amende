@@ -15,7 +15,7 @@ export async function signIn(formData: FormData) {
   }
 
   // #3 Vérifier si le format des données est ok
-  validateSignInData(email, password);
+  validateCredentialsFormat(email, password);
 
   // #4 Vérifier si un utilisateur correspond à ces identifiants
   const credentialsMatch = await verifyUserCredentials(email, password);
@@ -27,6 +27,87 @@ export async function signIn(formData: FormData) {
     };
   }
   return { success: true, message: "Connexion réussie" };
+}
+
+export async function registerAccount(formData: FormData) {
+  // #1 Récup les champs
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+
+  // #2 Vérifier si tous les champs sont fournis
+  if (!email || !password) {
+    return {
+      success: false,
+      message: "Identifiant(s) manquant(s).",
+    };
+  }
+
+  // #3 Vérifier si le format des données est ok
+  validateCredentialsFormat(email, password);
+
+  // vérifier si un compte existe déjà cette adresse
+  const response = await checkExistingEmail(email);
+
+  if (!response.success) {
+    return {
+      success: false,
+      message: response.message,
+    };
+  }
+
+  // créer le compte
+  const creationResponse = await createAccount(email, password);
+
+  if (!creationResponse.success) {
+    return {
+      success: false,
+      message:
+        creationResponse.code === 400
+          ? "Champs envoyés non valides"
+          : "Impossible de traier les données envoyées",
+    };
+  }
+
+  return {
+    success: true,
+    message: "Inscription réussie",
+  };
+}
+
+async function checkExistingEmail(email: string) {
+  const response = await fetch("http://localhost:8000/email_check", {
+    headers: { "Content-Type": "application/json" },
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await response.json();
+  return { success: data.success, message: data.message };
+}
+
+async function createAccount(email: string, password: string) {
+  const response = await fetch("http://localhost:8000/api/users", {
+    headers: {
+      "Content-Type": "application/ld+json",
+    },
+    method: "POST",
+    body: JSON.stringify({
+      email,
+      password,
+      created_at: new Date(),
+    }),
+  });
+
+  const data = await response.json();
+
+  if (response.status !== 201) {
+    return {
+      success: false,
+      code: response.status === 400 ? "invalid input" : "unprocessable entity",
+    };
+  }
+
+  return { success: true, code: response.status };
 }
 
 async function verifyUserCredentials(email: string, password: string) {
@@ -74,7 +155,7 @@ export function isTokenExpired(token: string) {
   return false;
 }
 
-function validateSignInData(email: string, password: string) {
+function validateCredentialsFormat(email: string, password: string) {
   const isEmailValid = isValidEmailFormat(email);
   if (!isEmailValid) {
     return { success: false, message: "Format de l'email incorrect." };

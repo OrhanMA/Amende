@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { signIn } from "../../auth";
+import { signIn, registerAccount } from "../../auth";
 
 export async function authenticate(_currentState: unknown, formData: FormData) {
   try {
@@ -20,6 +20,16 @@ export async function authenticate(_currentState: unknown, formData: FormData) {
     // }
     console.log(error);
     // Le return de la fonction sera le state envoyé à message dans le useFormState de la page login
+    throw error;
+  }
+}
+
+export async function register(_currentState: unknown, formData: FormData) {
+  try {
+    const result = await registerAccount(formData);
+    return result.message;
+  } catch (error: any) {
+    console.log(error);
     throw error;
   }
 }

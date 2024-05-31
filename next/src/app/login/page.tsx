@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { authenticate } from "../lib/actions";
 import { useFormState, useFormStatus } from "react-dom";
 
-export default function Page() {
+export default function Login() {
   const [message, dispatch] = useFormState(authenticate, undefined);
   const router = useRouter();
 
