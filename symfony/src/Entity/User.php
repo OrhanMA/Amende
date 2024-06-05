@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Post;
@@ -17,11 +18,12 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\SerializedName;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 
 
 #[ApiResource(
     operations: [
-        new GetCollection(security: "is_granted('ROLE_ADMIN')", securityMessage: "You must be an admin to view all users"),
+        new GetCollection(security: "is_granted('ROLE_ADMIN') or user.email == user.email", securityMessage: "You must be an admin to view all users", paginationEnabled: false),
         new Get(security: "is_granted('ROLE_ADMIN') or object == user", securityMessage: "You must be an admin or the owner to view this user"),
         new Delete(security: "is_granted('ROLE_ADMIN')", securityMessage: "Vous devez être adminstrateur pour pouvoir supprimer un compte"),
         new Post(
@@ -36,6 +38,7 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ApiFilter(SearchFilter::class, properties: ['email' => 'exact'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -44,7 +47,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    private ?string $email = null;
+    public ?string $email = null;
 
     /**
      * @var list<string> The user roles
@@ -74,7 +77,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $address = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $addtional_address = null;
+    private ?string $additional_address = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $common = null;
@@ -85,7 +88,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 5, nullable: true)]
     private ?string $postal_code = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(length: 10, nullable: true)]
     private ?string $phone_number = null;
 
     #[ORM\Column]
@@ -240,14 +243,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getAddtionalAddress(): ?string
+    public function getAdditionalAddress(): ?string
     {
-        return $this->addtional_address;
+        return $this->additional_address;
     }
 
-    public function setAddtionalAddress(?string $addtional_address): static
+    public function setAdditionalAddress(?string $additional_address): static
     {
-        $this->addtional_address = $addtional_address;
+        $this->additional_address = $additional_address;
 
         return $this;
     }

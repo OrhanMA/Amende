@@ -17,7 +17,7 @@ class UserHashPasswordStateProcessor implements ProcessorInterface
   }
 
   // data : User ; operation = post/put/patch
-  public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): User
+  public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
   {
     // chech si l'entity est bien un User, prend le clear password, hash le, set password et efface le clear password
     if ($data instanceof User && $data->getPlainPassword()) {

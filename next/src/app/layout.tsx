@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Header } from "@dataesr/react-dsfr";
 import SiteHeader from "@/components/SiteHeader";
-import SiteFooter from "@/components/SiteFooter";
+// import SiteFooter from "@/components/SiteFooter";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +21,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <SiteHeader />
         <main className="p-6 lg:px-12">{children}</main>
-        <SiteFooter />
+        {/* <SiteFooter/> */}
       </body>
     </html>
   );

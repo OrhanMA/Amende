@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { isTokenExpired } from "./app/lib/auth";
+import { isTokenExpired } from "./app/lib/helper";
 
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl;
@@ -9,6 +9,7 @@ export async function middleware(request: NextRequest) {
   if (route === "/logout") {
     const response = NextResponse.redirect(new URL("/login", url.clone()));
     response.cookies.delete("token");
+    response.cookies.delete("user_id");
     response.cookies.delete("refresh_token");
     return response;
   }
@@ -31,6 +32,7 @@ export async function middleware(request: NextRequest) {
     urlClone.pathname = "/login";
     const response = NextResponse.redirect(urlClone);
     response.cookies.delete("token");
+    response.cookies.delete("user_id");
     response.cookies.delete("refresh_token");
     return response;
   }
@@ -40,6 +42,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|register|login|$).*)",
+    "/((?!api|_next/static|_next/image|images|favicon.ico|register|login|$).*)",
   ],
 };

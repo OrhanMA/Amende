@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Put;
 use ApiPlatform\Metadata\Delete;
@@ -14,33 +16,34 @@ use ApiPlatform\Metadata\Post;
 
 #[ORM\Entity(repositoryClass: FineRepository::class)]
 #[ApiResource]
-#[GetCollection(security: "is_granted('ROLE_ADMIN')", securityMessage: "Vous devez être administrateur pour obtenir les données des amendes")]
+#[GetCollection()]
 #[Get(security: "is_granted('ROLE_USER')", securityMessage: "Vous devez être un utilisateur connecté au service pour obtenir les données d'une amende")]
 #[Delete(security: "is_granted('ROLE_ADMIN')", securityMessage: "Vous devez être administrateur pour supprimer une amende")]
 #[Put(security: "is_granted('ROLE_ADMIN')", securityMessage: "Vous devez être administrateur pour remplacer les données d'une amende")]
 #[Patch(security: "is_granted('ROLE_ADMIN')", securityMessage: "Vous devez être administrateur pour modifier une amende")]
 #[Post(security: "is_granted('ROLE_ADMIN')", securityMessage: "Vous devez être administrateur pour créer une amende")]
+#[ApiFilter(SearchFilter::class, properties: ['code' => 'exact'])]
 class Fine
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    public ?int $id = null;
 
     #[ORM\Column]
-    private ?int $amount = null;
+    public ?int $amount = null;
 
     #[ORM\Column(length: 12)]
-    private ?string $code = null;
+    public ?string $code = null;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $created_at = null;
+    public ?\DateTimeImmutable $created_at = null;
 
     #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $updated_at = null;
+    public ?\DateTimeImmutable $updated_at = null;
 
     #[ORM\OneToOne(mappedBy: 'fine', cascade: ['persist', 'remove'])]
-    private ?Payment $payment = null;
+    public ?Payment $payment = null;
 
     public function getId(): ?int
     {

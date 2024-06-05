@@ -20,7 +20,7 @@ class FineService
       return false;
     }
 
-    // AB2024_17_83
+    // AB2024_17_83 (code valide)
     $letterA = $fineCode[0];
     // dd($letterA);
     $letterB = $fineCode[1];

@@ -14,7 +14,7 @@ use ApiPlatform\Metadata\GetCollection;
 
 #[ORM\Entity(repositoryClass: PaymentRepository::class)]
 #[ApiResource]
-#[GetCollection(security: "is_granted('ROLE_ADMIN') or object.user == user", securityMessage: "Vous devez être administrateur ou auteur des paiements pour en obtenir les données")]
+#[GetCollection(security: "is_granted('ROLE_USER')", securityMessage: "Vous devez être connecté pour consulter les paiements")]
 #[Get(security: "is_granted('ROLE_ADMIN') or object.user == user", securityMessage: "Vous devez administrateur ou auteur du paiement pour en obtenir les données")]
 #[Delete(security: "is_granted('ROLE_ADMIN')", securityMessage: "Vous devez être administrateur pour supprimer une amende")]
 #[Put(security: "is_granted('ROLE_ADMIN')", securityMessage: "Vous devez être administrateur pour remplacer les données d'une amende")]
@@ -25,27 +25,31 @@ class Payment
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    public ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'payments')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $user = null;
+    public ?User $user = null;
+
+    #[ORM\Column(length: 16)]
+    public ?string $card_number = null;
+
+    #[ORM\Column(length: 3)]
+    public ?string $cryptogram = null;
+
+    #[ORM\Column(length: 7)]
+    public ?string $expiration = null;
 
     #[ORM\Column]
-    private ?int $card_number = null;
-
-    #[ORM\Column]
-    private ?int $cryptogram = null;
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $created_at = null;
+    public ?\DateTimeImmutable $created_at = null;
 
     #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $updated_at = null;
+    public ?\DateTimeImmutable $updated_at = null;
 
     #[ORM\OneToOne(inversedBy: 'payment', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Fine $fine = null;
+    public ?Fine $fine = null;
+
 
     public function getId(): ?int
     {
@@ -64,26 +68,38 @@ class Payment
         return $this;
     }
 
-    public function getCardNumber(): ?int
+    public function getCardNumber(): ?string
     {
         return $this->card_number;
     }
 
-    public function setCardNumber(int $card_number): static
+    public function setCardNumber(string $card_number): static
     {
         $this->card_number = $card_number;
 
         return $this;
     }
 
-    public function getCryptogram(): ?int
+    public function getCryptogram(): ?string
     {
         return $this->cryptogram;
     }
 
-    public function setCryptogram(int $cryptogram): static
+    public function setCryptogram(string $cryptogram): static
     {
         $this->cryptogram = $cryptogram;
+
+        return $this;
+    }
+
+    public function getExpiration(): ?string
+    {
+        return $this->expiration;
+    }
+
+    public function setExpiration(string $expiration): static
+    {
+        $this->expiration = $expiration;
 
         return $this;
     }

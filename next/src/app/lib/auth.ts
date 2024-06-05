@@ -1,5 +1,6 @@
 import { jwtDecode } from "jwt-decode";
 import { cookies } from "next/headers";
+import { validateCredentialsFormat } from "./helper";
 
 export async function signIn(formData: FormData) {
   // #1 Récup les champs
@@ -76,8 +77,8 @@ export async function registerAccount(formData: FormData) {
 
 export async function updateUserInfos(formData: FormData) {
   // #1 Récupérer les champs
-  const email = formData.get("email")?.toString();
-  const password = formData.get("password")?.toString();
+  // const email = formData.get("email")?.toString();
+  // const password = formData.get("password")?.toString();
   const first_name = formData.get("first_name")?.toString();
   const last_name = formData.get("last_name")?.toString();
   const sexe = formData.get("sexe")?.toString();
@@ -87,12 +88,163 @@ export async function updateUserInfos(formData: FormData) {
   const city = formData.get("city")?.toString();
   const postal_code = formData.get("postal_code")?.toString();
   const phone_number = formData.get("phone_number")?.toString();
+
   // #2 Vérifier que toutes les infos sont présentes
+
+  for (let data of formData.entries()) {
+    if ((!data[0].startsWith("$") && data[1] === "") || data[1] === undefined) {
+      if (
+        data[0] !== "additional_address" &&
+        data[0] !== "common" &&
+        data[0] !== "phone_number"
+      ) {
+        return { success: false, message: `${data[0]} est vide` };
+      }
+    }
+    // console.log(data);
+  }
   // #3 Vérifier que toutes les infos ont le format correct
-  // #4 Vérifier si l'email n'est pas déjà utilisé par un autre utilisateur
-  // #5 Mettre à jour les informations
+  // if (email) {
+  //   const emailIsValid = isValidEmailFormat(email);
+  //   if (!emailIsValid) {
+  //     return {
+  //       sucess: false,
+  //       message: "Le format de l'email n'est pas correct",
+  //     };
+  //   }
+  // }
+
+  // if (password) {
+  //   const passwordValid = isValidPasswordFormat(password);
+  //   if (!passwordValid) {
+  //     return {
+  //       sucess: false,
+  //       message: "Votre mot de passe est trop long",
+  //     };
+  //   }
+  // }
+
+  if (first_name && first_name.length > 255) {
+    return {
+      sucess: false,
+      message: "Le champ prénom est trop long",
+    };
+  }
+  if (last_name && last_name.length > 255) {
+    return {
+      sucess: false,
+      message: "Le champ nom de famille est trop long",
+    };
+  }
+  if (address && address.length > 255) {
+    return {
+      sucess: false,
+      message: "Le champ adresse est trop long",
+    };
+  }
+  if (
+    additional_address &&
+    additional_address !== "" &&
+    additional_address.length > 255
+  ) {
+    return {
+      sucess: false,
+      message: "Le champ adresse complémentaire est trop long",
+    };
+  }
+  if (common && common !== "" && common.length > 255) {
+    return {
+      sucess: false,
+      message: "Le champ commune complémentaire est trop long",
+    };
+  }
+  if (city && city.length > 255) {
+    return {
+      sucess: false,
+      message: "Le champ ville complémentaire est trop long",
+    };
+  }
+
+  if (postal_code && postal_code.length > 5) {
+    return {
+      sucess: false,
+      message: "Le champ code postal ne peut dépasser 5 chiffres",
+    };
+  }
+
+  if (phone_number && phone_number.length !== 10) {
+    return {
+      sucess: false,
+      message: "Le champ téléphone doit composé d'un numéro à 10 chiffres",
+    };
+  }
+
+  if (sexe) {
+    if (sexe !== "0") {
+      if (sexe !== "1") {
+        return {
+          success: false,
+          message: "La valeur pour le champ sexe n'est pas correcte",
+        };
+      }
+    }
+  }
+  // #3 Mettre à jour les informations
+  const userID = getUserId();
 
   return { success: true, message: "Informations mises à jour" };
+}
+
+function getUserId(): string | undefined {
+  return cookies().get("user_id")?.value;
+  // const token = cookies().get("token")?.value;
+  // if (token) {
+  //   try {
+  //     const response = await fetch("http://localhost:8000/me", {
+  //       headers: {
+  //         "Authorization": `Bearer ${token}`,
+  //       },
+  //     });
+  //     const data = await response.json();
+  //     console.log("getUserId: ", data);
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // } else {
+  //   return null;
+  // }
+}
+
+async function updateUserProfile(
+  first_name: string,
+  last_name: string,
+  sexe: string,
+  address: string,
+  additional_address: string,
+  common: string,
+  city: string,
+  postal_code: string,
+  phone_number: string,
+  userId: string
+) {
+  const response = await fetch(`http://localhost:8000/api/users/${userId}`, {
+    headers: { "Content-Type": "application/merge-patch+json" },
+    method: "PATCH",
+    body: JSON.stringify({
+      first_name,
+      last_name,
+      sexe,
+      address,
+      additional_address,
+      common,
+      city,
+      postal_code,
+      phone_number,
+    }),
+  });
+
+  const data = await response.json();
+  return { success: data.success, message: data.message };
 }
 
 async function checkExistingEmail(email: string) {
@@ -141,11 +293,12 @@ async function verifyUserCredentials(email: string, password: string) {
     body: JSON.stringify({ username: email, password }),
   });
   if (response.ok) {
-    const data: { token: string; refresh_token: string } =
+    const data: { token: string; id: number; refresh_token: string } =
       await response.json();
     //stocker les tokens dans les cookies
     const cookieStore = cookies();
     cookieStore.set("token", data.token, { httpOnly: true });
+    cookieStore.set("user_id", data.id.toString(), { httpOnly: true });
     cookieStore.set("refresh_token", data.refresh_token, { httpOnly: true });
     return { success: true };
   } else {
@@ -163,41 +316,5 @@ async function verifyUserCredentials(email: string, password: string) {
     } else {
       return { success: false, message: "Identifiants incorrects." };
     }
-  }
-}
-
-export function isTokenExpired(token: string) {
-  const decoded = jwtDecode(token);
-  const currentTime = Math.floor(Date.now() / 1000);
-  const tokenExpiration = decoded.exp;
-  if (tokenExpiration && tokenExpiration < currentTime) {
-    return true;
-  }
-  return false;
-}
-
-function validateCredentialsFormat(email: string, password: string) {
-  const isEmailValid = isValidEmailFormat(email);
-  if (!isEmailValid) {
-    return { success: false, message: "Format de l'email incorrect." };
-  }
-
-  const isPasswordValid = isValidPasswordFormat(password);
-  if (!isPasswordValid) {
-    return { success: false, message: "Mot de passe trop long." };
-  }
-}
-
-function isValidEmailFormat(email: string) {
-  if (email.length > 180) {
-    return false;
-  }
-  // https://ui.dev/validate-email-address-javascript
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function isValidPasswordFormat(password: string) {
-  if (password.length > 255) {
-    return false;
   }
 }

@@ -18,6 +18,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class SecurityController extends AbstractController
 {
+
     #[Route(path: '/login', name: 'app_login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
@@ -105,4 +106,26 @@ class SecurityController extends AbstractController
             "message" => "Aucun utilisateur ne correspond à cette adresse email. L'enregistrement peut continuer"
         ], 200);
     }
+
+    // #[Route('/me', name: 'app_user_infos')]
+    // public function getUserID(Request $request, UserRepository $userRepository, JWTEncoderInterface $jwtEncoderInterface): Response
+    // {
+    //     $authorizationHeader = $request->headers->get('authorization');
+
+    //     $token = substr($authorizationHeader, 7, strlen($authorizationHeader));
+
+    //     if (!$token) {
+    //         return new JsonResponse(['message' => 'Could not find token in the Authorization header']);
+    //     }
+
+    //     $decoded = $jwtEncoderInterface->decode($token);
+
+    //     $email = $decoded['username'];
+
+    //     $id = $userRepository->findOneBy(['email' => $email])->id;
+
+    //     return new JsonResponse([
+    //         "id" => $id,
+    //     ]);
+    // }
 }
