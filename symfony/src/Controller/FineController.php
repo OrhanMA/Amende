@@ -22,13 +22,13 @@ class FineController extends AbstractController
         $codeFormatValid = $fineService->isValidFormat($fineCode);
 
         if (!$codeFormatValid) {
-            return new JsonResponse(['error' => 'The fine code format is invalid'], 400);
+            return new JsonResponse(['success' => false, 'message' => "Le format de l'amende n'est pas valide"], 400);
         }
 
         $fine = $fineRepository->findOneBy(['code' => $fineCode]);
 
         if (!$fine) {
-            return new JsonResponse(['error' => 'Fine not found for that code'], 404);
+            return new JsonResponse(['success' => false, 'message' => 'Aucune amende trouvée avec ce code'], 404);
         }
 
         $context = [
@@ -38,6 +38,7 @@ class FineController extends AbstractController
         $serializedFine = $fine ? $serializer->serialize($fine, 'json', $context) : null;
 
         return new JsonResponse([
+            'success' => true,
             'exists' => $fine !== null,
             'fine' => $serializedFine ? json_decode($serializedFine, true) : null
         ]);
@@ -55,7 +56,7 @@ class FineController extends AbstractController
         $fine = $fineRepository->findOneBy(['id' => $fineId]);
 
         if (!$fine) {
-            return new JsonResponse(['error' => 'Fine not found'], 404);
+            return new JsonResponse(["success" => false, 'message' => "Le paiement ne peut pas être vérifié car l'amende n'a pas été trouvée", 'exists' => false, 'payment' => null], 404);
         }
 
         $payment = $fine->getPayment();
@@ -67,6 +68,7 @@ class FineController extends AbstractController
         $serializedPayment = $payment ? $serializer->serialize($payment, 'json', $context) : null;
 
         return new JsonResponse([
+            "success" => true,
             'exists' => $payment !== null,
             'payment' => $serializedPayment ? json_decode($serializedPayment, true) : null
         ]);

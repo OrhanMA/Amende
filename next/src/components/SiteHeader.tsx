@@ -27,7 +27,6 @@ export default function SiteHeader() {
       <MobileMenu token={token}>
         <Button
           variant="secondary"
-          className="bg-white"
           className="border border-sand-200 sm:hidden p-1"
         >
           <RxHamburgerMenu size={30} color="#0c0091" />

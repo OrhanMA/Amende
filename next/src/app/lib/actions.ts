@@ -1,7 +1,13 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { signIn, registerAccount, updateUserInfos, verifyCode } from "./auth";
+import {
+  signIn,
+  registerAccount,
+  updateUserInfos,
+  verifyCode,
+  processPayment,
+} from "./auth";
 
 export async function authenticate(_currentState: unknown, formData: FormData) {
   try {
@@ -27,6 +33,19 @@ export async function authenticate(_currentState: unknown, formData: FormData) {
 export async function checkFine(_currentState: unknown, formData: FormData) {
   try {
     const result = await verifyCode(formData);
+    return result.message;
+  } catch (error: any) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function submitPayment(
+  _currentState: unknown,
+  formData: FormData
+) {
+  try {
+    const result = await processPayment(formData);
     return result.message;
   } catch (error: any) {
     console.log(error);

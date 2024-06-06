@@ -318,3 +318,86 @@ async function verifyUserCredentials(email: string, password: string) {
     }
   }
 }
+
+export async function verifyCode(formData: FormData) {
+  const code = formData.get("code")?.toString();
+  if (!code) {
+    return {
+      success: false,
+      message: "Impossible de récupérer le code dans le formulaire",
+    };
+  }
+
+  const response = await getFine(code);
+  console.log(response);
+
+  if (response.success === false) {
+    return {
+      success: false,
+      message: response.message,
+    };
+  }
+  const fineId: string = response.fine.id.toString();
+
+  const paymentStatus = await verifyFinePaymentStatus(fineId);
+
+  if ((paymentStatus.success = false)) {
+    return { success: false, message: paymentStatus.message };
+  }
+
+  if (paymentStatus.exists === true) {
+    return {
+      success: false,
+      message: "Un paiement existe déjà pour cette amende",
+    };
+  }
+  return { success: true, message: `Code valide: ${code}` };
+}
+
+async function getFine(code: string) {
+  const token = cookies().get("token")?.value;
+  const response = await fetch(`http://localhost:8000/api/fine/check/${code}`, {
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+  });
+  const data = await response.json();
+  return data;
+}
+
+async function verifyFinePaymentStatus(fineId: string) {
+  const token = cookies().get("token")?.value;
+  const response = await fetch(
+    `http://localhost:8000/api/fine/${fineId}/payment`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    }
+  );
+  const data = await response.json();
+  return data;
+}
+
+export async function processPayment(formData: FormData) {
+  // Vérifier:
+
+  // le format des données est valide avant soumission à l'API
+
+  // l'amende existe pour le code soumis en hidden input
+
+  // un paiement n'existe pas encore
+
+  // prendre l'id du user dans cookies
+
+  // envoyer la demande de paiement à l'API
+
+  // gérer les cas de réponses
+
+  return {
+    success: true,
+    message: "Paiement confirmé",
+  };
+}
